@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:resep_makanan_app/core/providers/auth_provider.dart';
 import 'package:resep_makanan_app/core/widgets/custom_text_field_widget.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -22,82 +24,71 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        // automaticallyImplyLeading di set false untuk menghilangkan tombol back
-        automaticallyImplyLeading: false,
-        title: const Text(
-          'Login',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, _) {
+        return Scaffold(
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            title: const Text(
+              'Login',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // custom text field widget terdapat pada core/widgets/custom_text_field_widget.dart
-              CustomTextFieldWidget(
-                controller: emailController,
-                label: "Email",
-                hintText: "Masukkan Email",
-                prefixIcon: const Icon(Icons.email),
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              CustomTextFieldWidget(
-                controller: passwordController,
-                label: "Password",
-                obscureText: true,
-                hintText: "Masukkan Password",
-                prefixIcon: const Icon(Icons.key),
-              ),
-              const SizedBox(
-                height: 32,
-              ),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: FilledButton(
-                  onPressed: () {
-                    // navigator pushnamed digunakan untuk pindah halaman berdasarkan route yang sudah didefinisi diwal
-                    Navigator.pushNamed(context, "/");
-                  },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.green[400],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
+          body: authProvider.isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      if (authProvider.errorMessage != null)
+                        Text(
+                          authProvider.errorMessage!,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      CustomTextFieldWidget(
+                        controller: emailController,
+                        label: 'Email',
+                        hintText: 'Masukkan email anda',
+                      ),
+                      const SizedBox(height: 16),
+                      CustomTextFieldWidget(
+                        controller: passwordController,
+                        label: 'Password',
+                        hintText: 'Masukkan password anda',
+                        obscureText: true,
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (emailController.text.isNotEmpty &&
+                              passwordController.text.isNotEmpty) {
+                            authProvider
+                                .login(emailController.text,
+                                    passwordController.text)
+                                .then((_) {
+                              if (authProvider.isAuthenticated) {
+                                Navigator.pushReplacementNamed(
+                                    context, '/home');
+                              }
+                            });
+                          }
+                        },
+                        child: const Text('Login'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/register');
+                        },
+                        child: const Text('Belum punya akun? Daftar disini'),
+                      ),
+                    ],
                   ),
-                  child: const Text('Login'),
                 ),
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, "/register");
-                  },
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: const Text('Daftar akun disini'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
