@@ -1,7 +1,10 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
+import 'package:resep_makanan_app/core/exceptions/api_exception.dart';
+import 'package:resep_makanan_app/core/models/login_model.dart';
 import 'package:resep_makanan_app/core/utils/token_manager.dart';
+import 'package:resep_makanan_app/core/models/api_response.dart';
 
 class ApiService {
   final String baseUrl = 'https://recipe.incube.id';
@@ -9,56 +12,10 @@ class ApiService {
 
   ApiService({required this.tokenManager});
 
-  Future<dynamic> get(String endpoint) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/$endpoint'),
-      headers: {
-        'Authorization': 'Bearer ${await _getToken()}',
-        'Content-Type': 'application/json',
-      },
-    );
-    return _handleResponse(response);
-  }
-
-  Future<dynamic> post(String endpoint, dynamic data) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/$endpoint'),
-      headers: {
-        'Authorization': 'Bearer ${await _getToken()}',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode(data),
-    );
-    return _handleResponse(response);
-  }
-
-  Future<dynamic> put(String endpoint, dynamic data) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/$endpoint'),
-      headers: {
-        'Authorization': 'Bearer ${await _getToken()}',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode(data),
-    );
-    return _handleResponse(response);
-  }
-
-  Future<dynamic> delete(String endpoint) async {
-    final response = await http.delete(
-      Uri.parse('$baseUrl/$endpoint'),
-      headers: {
-        'Authorization': 'Bearer ${await _getToken()}',
-        'Content-Type': 'application/json',
-      },
-    );
-    return _handleResponse(response);
-  }
-
   Future<String> _getToken() async {
     final token = await tokenManager.getToken();
     if (token == null) {
-      throw Exception('No authentication token found');
+      return "";
     }
     return token;
   }
@@ -96,12 +53,68 @@ class ApiService {
     }
   }
 
-  dynamic _handleResponse(http.Response response) {
+  ApiResponse<T> _handleResponse<T>(
+      http.Response response, FromJson<T>? fromJson) {
     final responseBody = json.decode(response.body);
+
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      return responseBody;
+      return ApiResponse.fromJson(responseBody, fromJson);
     } else {
-      throw Exception(responseBody['message'] ?? 'Request failed');
+      throw ApiException(
+        message: responseBody['message'] ?? 'Request failed',
+        statusCode: response.statusCode,
+        errors: responseBody['errors'],
+      );
     }
+  }
+
+  Future<ApiResponse<T>> get<T>(String endpoint,
+      {FromJson<T>? fromJson}) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/$endpoint'),
+      headers: {
+        'Authorization': 'Bearer ${await _getToken()}',
+        'Content-Type': 'application/json',
+      },
+    );
+    return _handleResponse(response, fromJson);
+  }
+
+  Future<ApiResponse<T>> post<T>(String endpoint, dynamic data,
+      {FromJson<T>? fromJson}) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/$endpoint'),
+      headers: {
+        'Authorization': 'Bearer ${await _getToken()}',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(data),
+    );
+    return _handleResponse<T>(response, fromJson);
+  }
+
+  Future<ApiResponse<T>> put<T>(String endpoint, dynamic data,
+      {FromJson<T>? fromJson}) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/$endpoint'),
+      headers: {
+        'Authorization': 'Bearer ${await _getToken()}',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(data),
+    );
+    return _handleResponse(response, fromJson);
+  }
+
+  Future<ApiResponse<T>> delete<T>(String endpoint,
+      {FromJson<T>? fromJson}) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/$endpoint'),
+      headers: {
+        'Authorization': 'Bearer ${await _getToken()}',
+        'Content-Type': 'application/json',
+      },
+    );
+    return _handleResponse(response, fromJson);
   }
 }

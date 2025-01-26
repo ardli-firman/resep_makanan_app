@@ -1,4 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import 'package:resep_makanan_app/core/providers/recipe_provider.dart';
 import 'package:resep_makanan_app/core/widgets/custom_text_field_widget.dart';
 
 class TambahResepScreen extends StatefulWidget {
@@ -9,15 +13,52 @@ class TambahResepScreen extends StatefulWidget {
 }
 
 class _TambahResepScreenState extends State<TambahResepScreen> {
+  final _formKey = GlobalKey<FormState>();
   final judulController = TextEditingController();
   final deskripsiController = TextEditingController();
-  final ingridientsController = TextEditingController();
+  final ingredientsController = TextEditingController();
+  final methodController = TextEditingController();
+  XFile? _imageFile;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = pickedFile;
+      });
+    }
+  }
+
+  Future<void> _submitForm(BuildContext context) async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_imageFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Silakan pilih foto resep')),
+      );
+      return;
+    }
+
+    final recipeProvider = context.read<RecipeProvider>();
+    await recipeProvider.createRecipe(
+      title: judulController.text,
+      description: deskripsiController.text,
+      ingredients: ingredientsController.text,
+      cookingMethod: methodController.text,
+      photo: _imageFile!,
+    );
+
+    if (!recipeProvider.isLoading && recipeProvider.errorMessage == null) {
+      Navigator.pop(context);
+    }
+  }
 
   @override
   void dispose() {
     judulController.dispose();
     deskripsiController.dispose();
-    ingridientsController.dispose();
+    ingredientsController.dispose();
+    methodController.dispose();
     super.dispose();
   }
 
@@ -34,59 +75,131 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              CustomTextFieldWidget(
-                controller: judulController,
-                label: "Judul",
-                hintText: "Masukkan Judul",
-                prefixIcon: const Icon(Icons.title),
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              CustomTextFieldWidget(
-                controller: deskripsiController,
-                label: "Deskripsi",
-                lines: 5,
-                hintText: "Masukkan Deskripsi",
-                prefixIcon: const Icon(Icons.description),
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              CustomTextFieldWidget(
-                controller: ingridientsController,
-                label: "Bahan-bahan",
-                lines: 5,
-                hintText: "Masukkan Bahan - bahan",
-                prefixIcon: const Icon(Icons.receipt),
-              ),
-              const SizedBox(
-                height: 32,
-              ),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: FilledButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, "/");
-                  },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.green[400],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+      body: Consumer<RecipeProvider>(
+        builder: (context, recipeProvider, _) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
+            child: SingleChildScrollView(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        height: 200,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: _imageFile == null
+                            ? const Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.add_a_photo, size: 48),
+                                  SizedBox(height: 8),
+                                  Text('Tambahkan Foto Resep'),
+                                ],
+                              )
+                            : ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Image.file(
+                                  File(_imageFile!.path),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                      ),
                     ),
-                  ),
-                  child: const Text('Simpan'),
+                    const SizedBox(height: 16),
+                    CustomTextFieldWidget(
+                      controller: judulController,
+                      label: "Judul",
+                      hintText: "Masukkan Judul",
+                      prefixIcon: const Icon(Icons.title),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Judul tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextFieldWidget(
+                      controller: deskripsiController,
+                      label: "Deskripsi",
+                      lines: 5,
+                      hintText: "Masukkan Deskripsi",
+                      prefixIcon: const Icon(Icons.description),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Deskripsi tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextFieldWidget(
+                      controller: ingredientsController,
+                      label: "Bahan-bahan",
+                      lines: 5,
+                      hintText: "Masukkan Bahan - bahan",
+                      prefixIcon: const Icon(Icons.receipt),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Bahan-bahan tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextFieldWidget(
+                      controller: methodController,
+                      label: "Cara Membuat",
+                      lines: 5,
+                      hintText: "Masukkan Cara Membuat",
+                      prefixIcon: const Icon(Icons.article),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Cara membuat tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: recipeProvider.isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : FilledButton(
+                              onPressed: () => _submitForm(context),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Colors.green[400],
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: const Text('Simpan'),
+                            ),
+                    ),
+                    if (recipeProvider.errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Text(
+                          recipeProvider.errorMessage!,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

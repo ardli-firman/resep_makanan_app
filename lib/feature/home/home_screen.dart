@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:resep_makanan_app/core/providers/auth_provider.dart';
+import 'package:resep_makanan_app/core/providers/recipe_provider.dart';
 import 'package:resep_makanan_app/feature/home/widgets/item_resep_widget.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -9,6 +12,31 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_scrollListener);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<RecipeProvider>().loadRecipes();
+    });
+  }
+
+  void _scrollListener() {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
+      _loadMore();
+    }
+  }
+
+  void _loadMore() {
+    final provider = context.read<RecipeProvider>();
+    if (provider.hasMore && !provider.isLoading) {
+      provider.loadRecipes(true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,32 +55,70 @@ class _HomeScreenState extends State<HomeScreen> {
               Icons.logout,
               color: Colors.white,
             ),
-            onPressed: () {
-              Navigator.popAndPushNamed(context, '/login');
+            onPressed: () async {
+              await context.read<AuthProvider>().logout();
+              if (context.mounted) {
+                Navigator.popAndPushNamed(context, '/login');
+              }
             },
           )
         ],
       ),
-      // menggunakan grid view untuk menampilkan item resep
-      body: GridView.builder(
-        // tampilkan 2 item
-        itemCount: 2,
-        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          // max cross axis extent digunakan untuk menentukan lebar grid
-          maxCrossAxisExtent: 400,
-          // main axis extent digunakan untuk menentukan tinggi grid
-          mainAxisExtent: 250,
-          // cross axis spacing digunakan untuk menentukan jarak antara grid item
-          crossAxisSpacing: 8,
-          // main axis spacing digunakan untuk menentukan jarak antara grid item
-          mainAxisSpacing: 8,
-        ),
-        itemBuilder: (context, index) {
-          // mengembalikan widget item resep yang ada di file widgets/item_resep_widget.dart
-          return ItemResepWidget(
-            onTap: () {
-              Navigator.pushNamed(context, '/detail-resep');
+      body: Consumer<RecipeProvider>(
+        builder: (context, recipeProvider, _) {
+          if (recipeProvider.isLoading && recipeProvider.recipes.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (recipeProvider.errorMessage != null) {
+            return Center(
+              child: Text(
+                recipeProvider.errorMessage!,
+                style: const TextStyle(color: Colors.red),
+              ),
+            );
+          }
+
+          return NotificationListener<ScrollNotification>(
+            onNotification: (notification) {
+              if (notification is ScrollEndNotification &&
+                  _scrollController.position.extentAfter == 0) {
+                _loadMore();
+              }
+              return false;
             },
+            child: GridView.builder(
+              controller: _scrollController,
+              itemCount: recipeProvider.recipes.length +
+                  (recipeProvider.hasMore ? 1 : 0),
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 400,
+                mainAxisExtent: 250,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+              ),
+              itemBuilder: (context, index) {
+                if (index >= recipeProvider.recipes.length) {
+                  return Center(
+                    child: recipeProvider.isLoading
+                        ? const CircularProgressIndicator()
+                        : const Text('No more recipes'),
+                  );
+                }
+
+                final recipe = recipeProvider.recipes[index];
+                return ItemResepWidget(
+                  recipe: recipe,
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/detail-resep',
+                      arguments: recipe,
+                    );
+                  },
+                );
+              },
+            ),
           );
         },
       ),

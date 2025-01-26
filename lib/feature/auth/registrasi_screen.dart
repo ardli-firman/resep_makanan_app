@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:resep_makanan_app/core/providers/auth_provider.dart';
 import 'package:resep_makanan_app/core/widgets/custom_text_field_widget.dart';
 
 class RegistrasiScreen extends StatefulWidget {
@@ -67,21 +69,42 @@ class _RegistrasiScreenState extends State<RegistrasiScreen> {
               const SizedBox(
                 height: 32,
               ),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: FilledButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, "/");
-                  },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.green[400],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: const Text('Register'),
-                ),
+              Consumer<AuthProvider>(
+                builder: (context, authProvider, _) {
+                  return Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: FilledButton(
+                          onPressed: authProvider.isLoading
+                              ? null
+                              : () async {
+                                  final result = await authProvider.register(
+                                    namaController.text.trim(),
+                                    emailController.text.trim(),
+                                    passwordController.text.trim(),
+                                  );
+                                  if (authProvider.errorMessage == null) {
+                                    Navigator.pushNamed(context, "/");
+                                  }
+                                },
+                          style: FilledButton.styleFrom(
+                            backgroundColor: Colors.green[400],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: authProvider.isLoading
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : const Text('Register'),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ],
           ),

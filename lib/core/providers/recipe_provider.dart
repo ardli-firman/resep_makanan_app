@@ -1,28 +1,55 @@
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:resep_makanan_app/core/models/recipe_model.dart';
 import 'package:resep_makanan_app/core/services/recipe_service.dart';
 
 class RecipeProvider with ChangeNotifier {
   final RecipeService _recipeService;
 
-  List<dynamic> _recipes = [];
+  List<Recipe> _recipes = [];
   bool _isLoading = false;
   String? _errorMessage;
+  int _currentPage = 1;
+  int? _lastPage;
+  bool _hasMore = true;
 
   RecipeProvider({required RecipeService recipeService})
       : _recipeService = recipeService;
 
-  List<dynamic> get recipes => _recipes;
+  List<Recipe> get recipes => _recipes;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  // Tambahkan getter
+  bool get hasMore => _hasMore;
+  int get currentPage => _currentPage;
 
-  Future<void> loadRecipes(int page) async {
+  Future<void> loadRecipes([bool loadMore = false]) async {
+    if (loadMore) {
+      if (!_hasMore || _isLoading) return;
+      _currentPage++;
+    } else {
+      _currentPage = 1;
+      _hasMore = true;
+    }
+
     _startLoading();
     try {
-      final response = await _recipeService.getRecipes(page);
-      _recipes = response['data'];
-      _clearError();
+      final response = await _recipeService.getRecipes(_currentPage);
+      if (response.isSuccess) {
+        final paginatedData = response.data!;
+
+        if (loadMore) {
+          _recipes.addAll(paginatedData.data);
+        } else {
+          _recipes = paginatedData.data;
+        }
+
+        _lastPage = paginatedData.currentPage;
+        _hasMore = paginatedData.nextPageUrl != null;
+        _clearError();
+      }
     } catch (e) {
+      if (loadMore) _currentPage--; // Rollback page if error
       _setError(e.toString());
     } finally {
       _stopLoading();

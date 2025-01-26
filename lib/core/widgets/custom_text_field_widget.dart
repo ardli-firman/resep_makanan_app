@@ -9,7 +9,8 @@ class CustomTextFieldWidget extends StatefulWidget {
       this.hintText = "",
       this.obscureText = false,
       this.lines = 1,
-      this.prefixIcon});
+      this.prefixIcon,
+      this.validator});
 
   final TextEditingController controller;
   final String label;
@@ -17,6 +18,7 @@ class CustomTextFieldWidget extends StatefulWidget {
   final bool obscureText;
   final Icon? prefixIcon;
   final int lines;
+  final String? Function(String?)? validator;
 
   @override
   State<CustomTextFieldWidget> createState() => _CustomTextFieldWidgetState();

@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:resep_makanan_app/core/models/recipe_model.dart';
 
 class ItemResepWidget extends StatefulWidget {
-  const ItemResepWidget({super.key, required this.onTap});
+  const ItemResepWidget({
+    super.key,
+    required this.onTap,
+    required this.recipe,
+  });
 
   final Function() onTap;
+  final Recipe recipe;
 
   @override
   State<ItemResepWidget> createState() => ItemResepWidgetState();
@@ -18,17 +25,31 @@ class ItemResepWidgetState extends State<ItemResepWidget> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Column(
           children: [
-            Container(
-              height: 120,
-              decoration: const BoxDecoration(
-                color: Colors.amber,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
+            Hero(
+              tag: widget.recipe.id,
+              child: CachedNetworkImage(
+                height: 120,
+                width: double.infinity,
+                imageUrl: widget.recipe.photoUrl,
+                imageBuilder: (context, imageProvider) => Container(
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
+                    image: DecorationImage(
+                      image: imageProvider,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
-                image: DecorationImage(
-                  image: AssetImage("assets/resep.png"),
-                  fit: BoxFit.fill,
+                placeholder: (context, url) => Container(
+                  color: Colors.grey[200],
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.error),
                 ),
               ),
             ),
@@ -46,27 +67,33 @@ class ItemResepWidgetState extends State<ItemResepWidget> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Title",
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(
-                      height: 8,
+                    Text(
+                      widget.recipe.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    Row(children: [
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.favorite),
-                      ),
-                      Text("100",
-                          style: Theme.of(context).textTheme.labelSmall),
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.comment),
-                      ),
-                      Text("100",
-                          style: Theme.of(context).textTheme.labelSmall),
-                    ])
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: () {},
+                          icon: const Icon(Icons.favorite),
+                        ),
+                        Text(
+                          widget.recipe.likesCount.toString(),
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                        IconButton(
+                          onPressed: () {},
+                          icon: const Icon(Icons.comment),
+                        ),
+                        Text(
+                          widget.recipe.commentsCount.toString(),
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                      ],
+                    )
                   ],
                 ),
               ),

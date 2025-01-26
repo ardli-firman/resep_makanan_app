@@ -1,5 +1,7 @@
 import 'package:image_picker/image_picker.dart';
+import 'package:resep_makanan_app/core/models/recipe_model.dart';
 import 'package:resep_makanan_app/core/services/api_service.dart';
+import 'package:resep_makanan_app/core/models/api_response.dart';
 
 class RecipeService {
   final ApiService _apiService;
@@ -7,15 +9,24 @@ class RecipeService {
 
   RecipeService({required ApiService apiService}) : _apiService = apiService;
 
-  Future<Map<String, dynamic>> getRecipes(int page) async {
-    return await _apiService.get('api/recipes?page=$page');
+  Future<ApiResponse<PaginatedResponse<Recipe>>> getRecipes(int page) async {
+    return await _apiService.get<PaginatedResponse<Recipe>>(
+      'api/recipes?page=$page',
+      fromJson: (json) => PaginatedResponse<Recipe>.fromJson(
+        json,
+        (itemJson) => Recipe.fromJson(itemJson),
+      ),
+    );
   }
 
-  Future<Map<String, dynamic>> getRecipeDetail(int id) async {
-    return await _apiService.get('api/recipes/$id');
+  Future<ApiResponse<Recipe>> getRecipeDetail(int id) async {
+    return await _apiService.get<Recipe>(
+      'api/recipes/$id',
+      fromJson: (json) => Recipe.fromJson(json),
+    );
   }
 
-  Future<Map<String, dynamic>> createRecipe({
+  Future<ApiResponse<Recipe>> createRecipe({
     required String title,
     required String description,
     required String cookingMethod,
@@ -34,10 +45,14 @@ class RecipeService {
       photo,
     );
 
-    return await _apiService.handleMultipartRequest(request);
+    final response = await _apiService.handleMultipartRequest(request);
+    return ApiResponse<Recipe>.fromJson(
+      response,
+      (data) => Recipe.fromJson(data),
+    );
   }
 
-  Future<Map<String, dynamic>> updateRecipe({
+  Future<ApiResponse<Map<String, dynamic>>> updateRecipe({
     required int id,
     required String title,
     required String description,

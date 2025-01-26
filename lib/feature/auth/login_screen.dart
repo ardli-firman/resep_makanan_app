@@ -14,12 +14,29 @@ class _LoginScreenState extends State<LoginScreen> {
   // untuk text controller pada tiap field
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  late final AuthProvider authProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    authProvider = Provider.of<AuthProvider>(context, listen: false);
+    authProvider.checkAuthentication();
+
+    authProvider.addListener(_isAuthenticated);
+  }
 
   @override
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
+    authProvider.removeListener(_isAuthenticated);
     super.dispose();
+  }
+
+  void _isAuthenticated() async {
+    if (authProvider.isAuthenticated && mounted) {
+      Navigator.pushReplacementNamed(context, '/');
+    }
   }
 
   @override
@@ -43,11 +60,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      if (authProvider.errorMessage != null)
-                        Text(
-                          authProvider.errorMessage!,
-                          style: const TextStyle(color: Colors.red),
-                        ),
                       CustomTextFieldWidget(
                         controller: emailController,
                         label: 'Email',
@@ -70,8 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     passwordController.text)
                                 .then((_) {
                               if (authProvider.isAuthenticated) {
-                                Navigator.pushReplacementNamed(
-                                    context, '/home');
+                                Navigator.pushReplacementNamed(context, '/');
                               }
                             });
                           }
