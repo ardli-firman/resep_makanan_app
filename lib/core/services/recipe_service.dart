@@ -1,7 +1,7 @@
 import 'package:image_picker/image_picker.dart';
-import 'package:resep_makanan_app/core/models/recipe_model.dart';
-import 'package:resep_makanan_app/core/services/api_service.dart';
-import 'package:resep_makanan_app/core/models/api_response.dart';
+import '../models/recipe_model.dart';
+import 'api_service.dart';
+import '../models/api_response.dart';
 
 class RecipeService {
   final ApiService _apiService;

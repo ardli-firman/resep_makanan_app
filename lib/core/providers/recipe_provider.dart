@@ -1,14 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:resep_makanan_app/core/models/recipe_model.dart';
-import 'package:resep_makanan_app/core/services/recipe_service.dart';
+import '../models/recipe_model.dart';
+import '../services/recipe_service.dart';
+import '../utils/dialog_utils.dart';
 
 class RecipeProvider with ChangeNotifier {
   final RecipeService _recipeService;
 
   List<Recipe> _recipes = [];
+  Recipe? _recipe;
   bool _isLoading = false;
-  String? _errorMessage;
   int _currentPage = 1;
   int? _lastPage;
   bool _hasMore = true;
@@ -18,11 +19,24 @@ class RecipeProvider with ChangeNotifier {
 
   List<Recipe> get recipes => _recipes;
   bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage;
   bool get hasMore => _hasMore;
   int get currentPage => _currentPage;
+  Recipe? get recipe => _recipe;
+
+  Future<void> getRecipeDetail(int id) async {
+    _startLoading();
+    try {
+      final response = await _recipeService.getRecipeDetail(id);
+      if (response.isSuccess) _recipe = response.data!;
+    } catch (e) {
+      rethrow;
+    } finally {
+      _stopLoading();
+    }
+  }
 
   Future<void> loadRecipes([bool loadMore = false]) async {
+    _recipe = null;
     if (loadMore) {
       if (!_hasMore || _isLoading) return;
       _currentPage++;
@@ -45,11 +59,10 @@ class RecipeProvider with ChangeNotifier {
 
         _lastPage = paginatedData.currentPage;
         _hasMore = paginatedData.nextPageUrl != null;
-        _clearError();
       }
     } catch (e) {
       if (loadMore) _currentPage--;
-      _setError(e.toString());
+      rethrow;
     } finally {
       _stopLoading();
     }
@@ -64,16 +77,18 @@ class RecipeProvider with ChangeNotifier {
   }) async {
     _startLoading();
     try {
-      await _recipeService.createRecipe(
+      final response = await _recipeService.createRecipe(
         title: title,
         description: description,
         cookingMethod: cookingMethod,
         ingredients: ingredients,
         photo: photo,
       );
-      _clearError();
+      if (response.isSuccess) {
+        DialogUtils.showInfoDialog('Resep berhasil ditambahkan');
+      }
     } catch (e) {
-      _setError(e.toString());
+      rethrow;
     } finally {
       _stopLoading();
     }
@@ -89,16 +104,18 @@ class RecipeProvider with ChangeNotifier {
   }) async {
     _startLoading();
     try {
-      await _recipeService.updateRecipe(
+      final response = await _recipeService.updateRecipe(
         id: id,
         title: title,
         description: description,
         cookingMethod: cookingMethod,
         ingredients: ingredients,
       );
-      _clearError();
+      if (response.isSuccess) {
+        DialogUtils.showInfoDialog('Resep berhasil diupdate');
+      }
     } catch (e) {
-      _setError(e.toString());
+      rethrow;
     } finally {
       _stopLoading();
     }
@@ -111,16 +128,6 @@ class RecipeProvider with ChangeNotifier {
 
   void _stopLoading() {
     _isLoading = false;
-    notifyListeners();
-  }
-
-  void _setError(String message) {
-    _errorMessage = message;
-    notifyListeners();
-  }
-
-  void _clearError() {
-    _errorMessage = null;
     notifyListeners();
   }
 }

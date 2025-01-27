@@ -1,10 +1,10 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
-import 'package:resep_makanan_app/core/exceptions/api_exception.dart';
-import 'package:resep_makanan_app/core/models/login_model.dart';
-import 'package:resep_makanan_app/core/utils/token_manager.dart';
-import 'package:resep_makanan_app/core/models/api_response.dart';
+import '../exceptions/api_exception.dart';
+import '../models/login_model.dart';
+import '../utils/token_manager.dart';
+import '../models/api_response.dart';
 
 class ApiService {
   final String baseUrl = 'https://recipe.incube.id';

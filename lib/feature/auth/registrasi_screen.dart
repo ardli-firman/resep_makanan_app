@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:resep_makanan_app/core/providers/auth_provider.dart';
-import 'package:resep_makanan_app/core/widgets/custom_text_field_widget.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/utils/dialog_utils.dart';
+import '../../core/widgets/custom_text_field_widget.dart';
 
 class RegistrasiScreen extends StatefulWidget {
   const RegistrasiScreen({super.key});
@@ -14,6 +15,12 @@ class _RegistrasiScreenState extends State<RegistrasiScreen> {
   final namaController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  late final AuthProvider authProvider;
+
+  @override
+  initState() {
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -46,6 +53,12 @@ class _RegistrasiScreenState extends State<RegistrasiScreen> {
                 label: "Nama",
                 hintText: "Masukkan Nama",
                 prefixIcon: const Icon(Icons.person),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Nama Tidak boleh kosong';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(
                 height: 16,
@@ -55,6 +68,12 @@ class _RegistrasiScreenState extends State<RegistrasiScreen> {
                 label: "Email",
                 hintText: "Masukkan Email",
                 prefixIcon: const Icon(Icons.email),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Email tidak boleh kosong';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(
                 height: 16,
@@ -65,6 +84,12 @@ class _RegistrasiScreenState extends State<RegistrasiScreen> {
                 obscureText: true,
                 hintText: "Masukkan Password",
                 prefixIcon: const Icon(Icons.key),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Password tidak boleh kosong';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(
                 height: 32,
@@ -85,9 +110,6 @@ class _RegistrasiScreenState extends State<RegistrasiScreen> {
                                     emailController.text.trim(),
                                     passwordController.text.trim(),
                                   );
-                                  if (authProvider.errorMessage == null) {
-                                    Navigator.pushNamed(context, "/");
-                                  }
                                 },
                           style: FilledButton.styleFrom(
                             backgroundColor: Colors.green[400],

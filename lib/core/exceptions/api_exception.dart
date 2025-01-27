@@ -10,5 +10,8 @@ class ApiException implements Exception {
   });
 
   @override
-  String toString() => 'ApiException($statusCode): $message';
+  String toString() {
+    final err = errors?.values.expand((v) => v).join('\n') ?? message;
+    return "$message\n\n$err";
+  }
 }

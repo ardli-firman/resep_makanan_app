@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:resep_makanan_app/core/providers/auth_provider.dart';
-import 'package:resep_makanan_app/core/providers/recipe_provider.dart';
-import 'package:resep_makanan_app/feature/home/widgets/item_resep_widget.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/providers/recipe_provider.dart';
+import 'widgets/item_resep_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -94,7 +94,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   return Center(
                     child: recipeProvider.isLoading
                         ? const CircularProgressIndicator()
-                        : const Text('Scroll kebawah untuk menampilkan lagi'),
+                        : const Text(
+                            'Scroll untuk memuat lebih banyak',
+                            textAlign: TextAlign.center,
+                          ),
                   );
                 }
 

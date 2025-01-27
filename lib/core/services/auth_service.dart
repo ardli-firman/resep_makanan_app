@@ -1,7 +1,7 @@
-import 'package:resep_makanan_app/core/models/login_model.dart';
-import 'package:resep_makanan_app/core/services/api_service.dart';
-import 'package:resep_makanan_app/core/utils/token_manager.dart';
-import 'package:resep_makanan_app/core/models/api_response.dart';
+import '../models/login_model.dart';
+import 'api_service.dart';
+import '../utils/token_manager.dart';
+import '../models/api_response.dart';
 
 class AuthService {
   final ApiService apiService;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:resep_makanan_app/core/models/recipe_model.dart';
+import '../../../core/models/recipe_model.dart';
 
 class ItemResepWidget extends StatefulWidget {
   const ItemResepWidget({

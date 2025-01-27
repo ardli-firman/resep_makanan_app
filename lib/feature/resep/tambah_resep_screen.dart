@@ -1,10 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:resep_makanan_app/core/models/recipe_model.dart';
+import '../../core/models/recipe_model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:resep_makanan_app/core/providers/recipe_provider.dart';
-import 'package:resep_makanan_app/core/widgets/custom_text_field_widget.dart';
+import '../../core/providers/recipe_provider.dart';
+import '../../core/utils/dialog_utils.dart';
+import '../../core/widgets/custom_text_field_widget.dart';
 
 class TambahResepScreen extends StatefulWidget {
   const TambahResepScreen({super.key});
@@ -81,10 +82,7 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
         photo: _imageFile!,
       );
     }
-
-    if (!recipeProvider.isLoading && recipeProvider.errorMessage == null) {
-      Navigator.pop(context);
-    }
+    Navigator.pop(context);
   }
 
   @override
@@ -227,14 +225,6 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
                               child: const Text('Simpan'),
                             ),
                     ),
-                    if (recipeProvider.errorMessage != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 16),
-                        child: Text(
-                          recipeProvider.errorMessage!,
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                      ),
                   ],
                 ),
               ),

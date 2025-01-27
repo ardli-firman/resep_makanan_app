@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:resep_makanan_app/feature/auth/login_screen.dart';
-import 'package:resep_makanan_app/feature/auth/registrasi_screen.dart';
-import 'package:resep_makanan_app/feature/home/home_screen.dart';
-import 'package:resep_makanan_app/feature/resep/detail_resep_screen.dart';
-import 'package:resep_makanan_app/feature/resep/tambah_resep_screen.dart';
+import 'auth/login_screen.dart';
+import 'auth/registrasi_screen.dart';
+import 'home/home_screen.dart';
+import 'resep/detail_resep_screen.dart';
+import 'resep/tambah_resep_screen.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -32,10 +32,12 @@ class App extends StatelessWidget {
       ),
       // list route untuk menampilkan halaman
       routes: {
-        '/': (context) => const HomeScreen(),
+        '/home': (context) => const HomeScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegistrasiScreen(),
-        '/detail-resep': (context) => const DetailResepScreen(),
+        '/detail-resep': (context) => DetailResepScreen(
+              argument: ModalRoute.of(context)?.settings.arguments,
+            ),
         '/tambah-resep': (context) => const TambahResepScreen(),
       },
     );

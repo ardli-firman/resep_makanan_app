@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:resep_makanan_app/core/providers/auth_provider.dart';
-import 'package:resep_makanan_app/core/widgets/custom_text_field_widget.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/widgets/custom_text_field_widget.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -35,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _isAuthenticated() async {
     if (authProvider.isAuthenticated && mounted) {
-      Navigator.pushReplacementNamed(context, '/');
+      Navigator.pushReplacementNamed(context, '/home');
     }
   }
 
@@ -82,7 +82,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     passwordController.text)
                                 .then((_) {
                               if (authProvider.isAuthenticated) {
-                                Navigator.pushReplacementNamed(context, '/');
+                                Navigator.pushReplacementNamed(
+                                    context, '/home');
                               }
                             });
                           }

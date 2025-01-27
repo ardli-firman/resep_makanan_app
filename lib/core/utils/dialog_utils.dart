@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 
 class DialogUtils {
-  static Widget createErrorDialog(String message) {
+  static Widget createDialog(String message,
+      {bool isError = false, Function()? onPress}) {
+    onPress ??= () {
+      Navigator.pop(navigatorKey.currentContext!);
+    };
+
     return AlertDialog(
-      title: const Text('Error'),
+      title: Text(isError ? 'Error' : 'Berhasil'),
       content: Text(message),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(navigatorKey.currentContext!),
-          child: const Text('OK'),
+          onPressed: onPress,
+          child: const Text('Tutup'),
         ),
       ],
     );
@@ -20,7 +25,16 @@ class DialogUtils {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       showDialog(
         context: navigatorKey.currentContext!,
-        builder: (context) => createErrorDialog(message),
+        builder: (context) => createDialog(message, isError: true),
+      );
+    });
+  }
+
+  static void showInfoDialog(String message, {Function()? onPress}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showDialog(
+        context: navigatorKey.currentContext!,
+        builder: (context) => createDialog(message, onPress: onPress),
       );
     });
   }
