@@ -19,7 +19,6 @@ class RecipeProvider with ChangeNotifier {
   List<Recipe> get recipes => _recipes;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-  // Tambahkan getter
   bool get hasMore => _hasMore;
   int get currentPage => _currentPage;
 
@@ -49,7 +48,7 @@ class RecipeProvider with ChangeNotifier {
         _clearError();
       }
     } catch (e) {
-      if (loadMore) _currentPage--; // Rollback page if error
+      if (loadMore) _currentPage--;
       _setError(e.toString());
     } finally {
       _stopLoading();
@@ -71,6 +70,31 @@ class RecipeProvider with ChangeNotifier {
         cookingMethod: cookingMethod,
         ingredients: ingredients,
         photo: photo,
+      );
+      _clearError();
+    } catch (e) {
+      _setError(e.toString());
+    } finally {
+      _stopLoading();
+    }
+  }
+
+  // update recipe
+  Future<void> updateRecipe({
+    required int id,
+    required String title,
+    required String description,
+    required String cookingMethod,
+    required String ingredients,
+  }) async {
+    _startLoading();
+    try {
+      await _recipeService.updateRecipe(
+        id: id,
+        title: title,
+        description: description,
+        cookingMethod: cookingMethod,
+        ingredients: ingredients,
       );
       _clearError();
     } catch (e) {

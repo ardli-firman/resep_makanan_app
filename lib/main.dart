@@ -20,10 +20,10 @@ void main() {
   final recipeService = RecipeService(apiService: apiService);
 
   // Set up global error handling
-  // FlutterError.onError = (details) {
-  //   FlutterError.presentError(details);
-  //   DialogUtils.showErrorDialog(details.exceptionAsString());
-  // };
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    DialogUtils.showErrorDialog(details.exceptionAsString());
+  };
 
   runApp(
     MultiProvider(
@@ -54,10 +54,10 @@ void main() {
   );
 }
 
-// void _setupErrorHandler(BuildContext context) {
-//   // Handle async errors
-//   PlatformDispatcher.instance.onError = (error, stack) {
-//     DialogUtils.showErrorDialog(error.toString());
-//     return true;
-//   };
-// }
+void _setupErrorHandler(BuildContext context) {
+  // Handle async errors
+  PlatformDispatcher.instance.onError = (error, stack) {
+    DialogUtils.showErrorDialog(error.toString());
+    return true;
+  };
+}

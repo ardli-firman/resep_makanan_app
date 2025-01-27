@@ -19,13 +19,14 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _scrollController.addListener(_scrollListener);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<RecipeProvider>().loadRecipes();
     });
   }
 
   void _scrollListener() {
     if (_scrollController.position.pixels ==
-        _scrollController.position.maxScrollExtent) {
+        _scrollController.position.maxScrollExtent - 100) {
       _loadMore();
     }
   }
@@ -58,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () async {
               await context.read<AuthProvider>().logout();
               if (context.mounted) {
-                Navigator.popAndPushNamed(context, '/login');
+                Navigator.pushReplacementNamed(context, '/login');
               }
             },
           )
@@ -68,15 +69,6 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context, recipeProvider, _) {
           if (recipeProvider.isLoading && recipeProvider.recipes.isEmpty) {
             return const Center(child: CircularProgressIndicator());
-          }
-
-          if (recipeProvider.errorMessage != null) {
-            return Center(
-              child: Text(
-                recipeProvider.errorMessage!,
-                style: const TextStyle(color: Colors.red),
-              ),
-            );
           }
 
           return NotificationListener<ScrollNotification>(
@@ -102,7 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   return Center(
                     child: recipeProvider.isLoading
                         ? const CircularProgressIndicator()
-                        : const Text('No more recipes'),
+                        : const Text('Scroll kebawah untuk menampilkan lagi'),
                   );
                 }
 
@@ -114,7 +106,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       context,
                       '/detail-resep',
                       arguments: recipe,
-                    );
+                    ).then((_) {
+                      if (mounted) context.read<RecipeProvider>().loadRecipes();
+                    });
                   },
                 );
               },
@@ -125,7 +119,9 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton.extended(
         icon: const Icon(Icons.add),
         onPressed: () {
-          Navigator.of(context).pushNamed('/tambah-resep');
+          Navigator.of(context).pushNamed('/tambah-resep').then((_) {
+            if (mounted) context.read<RecipeProvider>().loadRecipes();
+          });
         },
         label: const Text("Tambah Resep"),
       ),

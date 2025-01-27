@@ -52,9 +52,23 @@ class DetailResepScreenState extends State<DetailResepScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            color: Colors.white,
+            onPressed: () => Navigator.pushNamed(
+              context,
+              '/tambah-resep',
+              arguments: recipe,
+            ),
+          ),
+        ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 4,
+        ),
         child: SingleChildScrollView(
           child: Column(
             children: [

@@ -10,6 +10,7 @@ class CustomTextFieldWidget extends StatefulWidget {
       this.obscureText = false,
       this.lines = 1,
       this.prefixIcon,
+      this.enabled = true,
       this.validator});
 
   final TextEditingController controller;
@@ -18,6 +19,7 @@ class CustomTextFieldWidget extends StatefulWidget {
   final bool obscureText;
   final Icon? prefixIcon;
   final int lines;
+  final bool enabled;
   final String? Function(String?)? validator;
 
   @override
@@ -31,6 +33,7 @@ class _CustomTextFieldWidgetState extends State<CustomTextFieldWidget> {
       keyboardType: TextInputType.multiline,
       obscureText: widget.obscureText,
       controller: widget.controller,
+      enabled: widget.enabled,
       // untuk mengatur jumlah baris jika text field password maka diset menjadi 1 selain itu tergantung variable lines
       maxLines: widget.obscureText ? 1 : widget.lines,
       decoration: InputDecoration(

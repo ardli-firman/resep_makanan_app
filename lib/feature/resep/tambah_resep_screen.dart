@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:resep_makanan_app/core/models/recipe_model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:resep_makanan_app/core/providers/recipe_provider.dart';
@@ -19,6 +20,29 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
   final ingredientsController = TextEditingController();
   final methodController = TextEditingController();
   XFile? _imageFile;
+  Recipe? recipe;
+  bool _isEdit = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final arguments = ModalRoute.of(context)!.settings.arguments;
+    if (arguments is Recipe) recipe = arguments;
+    if (recipe != null) {
+      setState(() {
+        _isEdit = true;
+      });
+      judulController.text = recipe?.title ?? "";
+      deskripsiController.text = recipe?.description ?? "";
+      ingredientsController.text = recipe?.ingredients ?? "";
+      methodController.text = recipe?.cookingMethod ?? "";
+    }
+  }
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -32,7 +56,7 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
 
   Future<void> _submitForm(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
-    if (_imageFile == null) {
+    if (_imageFile == null && !_isEdit) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Silakan pilih foto resep')),
       );
@@ -40,13 +64,23 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
     }
 
     final recipeProvider = context.read<RecipeProvider>();
-    await recipeProvider.createRecipe(
-      title: judulController.text,
-      description: deskripsiController.text,
-      ingredients: ingredientsController.text,
-      cookingMethod: methodController.text,
-      photo: _imageFile!,
-    );
+    if (_isEdit) {
+      await recipeProvider.updateRecipe(
+        id: recipe!.id,
+        title: judulController.text,
+        description: deskripsiController.text,
+        ingredients: ingredientsController.text,
+        cookingMethod: methodController.text,
+      );
+    } else {
+      await recipeProvider.createRecipe(
+        title: judulController.text,
+        description: deskripsiController.text,
+        ingredients: ingredientsController.text,
+        cookingMethod: methodController.text,
+        photo: _imageFile!,
+      );
+    }
 
     if (!recipeProvider.isLoading && recipeProvider.errorMessage == null) {
       Navigator.pop(context);
@@ -67,9 +101,9 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Tambah Resep',
-          style: TextStyle(
+        title: Text(
+          _isEdit ? 'Edit Resep' : 'Tambah Resep',
+          style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
@@ -87,37 +121,41 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: Container(
-                        height: 200,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: _imageFile == null
-                            ? const Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.add_a_photo, size: 48),
-                                  SizedBox(height: 8),
-                                  Text('Tambahkan Foto Resep'),
-                                ],
-                              )
-                            : ClipRRect(
+                    !_isEdit
+                        ? GestureDetector(
+                            onTap: _pickImage,
+                            child: Container(
+                              height: 200,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[200],
                                 borderRadius: BorderRadius.circular(16),
-                                child: Image.file(
-                                  File(_imageFile!.path),
-                                  fit: BoxFit.cover,
-                                ),
                               ),
-                      ),
-                    ),
+                              child: _imageFile == null
+                                  ? const Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.add_a_photo, size: 48),
+                                        SizedBox(height: 8),
+                                        Text('Tambahkan Foto Resep'),
+                                      ],
+                                    )
+                                  : ClipRRect(
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: Image.file(
+                                        File(_imageFile!.path),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                            ),
+                          )
+                        : const SizedBox(),
                     const SizedBox(height: 16),
                     CustomTextFieldWidget(
                       controller: judulController,
                       label: "Judul",
+                      enabled: recipeProvider.isLoading ? false : true,
                       hintText: "Masukkan Judul",
                       prefixIcon: const Icon(Icons.title),
                       validator: (value) {
@@ -131,6 +169,7 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
                     CustomTextFieldWidget(
                       controller: deskripsiController,
                       label: "Deskripsi",
+                      enabled: recipeProvider.isLoading ? false : true,
                       lines: 5,
                       hintText: "Masukkan Deskripsi",
                       prefixIcon: const Icon(Icons.description),
@@ -145,6 +184,7 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
                     CustomTextFieldWidget(
                       controller: ingredientsController,
                       label: "Bahan-bahan",
+                      enabled: recipeProvider.isLoading ? false : true,
                       lines: 5,
                       hintText: "Masukkan Bahan - bahan",
                       prefixIcon: const Icon(Icons.receipt),
@@ -159,6 +199,7 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
                     CustomTextFieldWidget(
                       controller: methodController,
                       label: "Cara Membuat",
+                      enabled: recipeProvider.isLoading ? false : true,
                       lines: 5,
                       hintText: "Masukkan Cara Membuat",
                       prefixIcon: const Icon(Icons.article),
