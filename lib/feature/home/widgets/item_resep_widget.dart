@@ -26,11 +26,11 @@ class ItemResepWidgetState extends State<ItemResepWidget> {
         child: Column(
           children: [
             Hero(
-              tag: widget.recipe.id,
+              tag: widget.recipe.id ?? "",
               child: CachedNetworkImage(
                 height: 120,
                 width: double.infinity,
-                imageUrl: widget.recipe.photoUrl,
+                imageUrl: widget.recipe.photoUrl ?? "",
                 imageBuilder: (context, imageProvider) => Container(
                   decoration: BoxDecoration(
                     borderRadius: const BorderRadius.only(
@@ -68,7 +68,7 @@ class ItemResepWidgetState extends State<ItemResepWidget> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      widget.recipe.title,
+                      widget.recipe.title ?? "",
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleMedium,

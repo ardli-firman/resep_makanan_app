@@ -4,7 +4,6 @@ import '../../core/models/recipe_model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/recipe_provider.dart';
-import '../../core/utils/dialog_utils.dart';
 import '../../core/widgets/custom_text_field_widget.dart';
 
 class TambahResepScreen extends StatefulWidget {
@@ -66,23 +65,24 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
 
     final recipeProvider = context.read<RecipeProvider>();
     if (_isEdit) {
-      await recipeProvider.updateRecipe(
+      final res = await recipeProvider.updateRecipe(
         id: recipe!.id,
         title: judulController.text,
         description: deskripsiController.text,
         ingredients: ingredientsController.text,
         cookingMethod: methodController.text,
       );
+      if (res) Navigator.pop(context);
     } else {
-      await recipeProvider.createRecipe(
+      final res = await recipeProvider.createRecipe(
         title: judulController.text,
         description: deskripsiController.text,
         ingredients: ingredientsController.text,
         cookingMethod: methodController.text,
         photo: _imageFile!,
       );
+      if (res) Navigator.pop(context);
     }
-    Navigator.pop(context);
   }
 
   @override

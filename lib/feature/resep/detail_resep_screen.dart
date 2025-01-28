@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../../core/models/recipe_model.dart';
 import '../../core/providers/recipe_provider.dart';
+import '../../core/utils/dialog_utils.dart';
 
 class DetailResepScreen extends StatefulWidget {
   final argument;
@@ -19,6 +20,41 @@ class DetailResepScreenState extends State<DetailResepScreen> {
   void initState() {
     super.initState();
     recipe = widget.argument as Recipe;
+  }
+
+  Future<void> _deleteRecipe(BuildContext context) async {
+    final confirmed = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Konfirmasi'),
+        content: const Text('Apakah Anda yakin ingin menghapus resep ini?'),
+        actions: [
+          TextButton(
+            child: const Text('Batal'),
+            onPressed: () => Navigator.pop(context, false),
+          ),
+          TextButton(
+            child: const Text('Hapus'),
+            onPressed: () => Navigator.pop(context, true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed ?? false) {
+      final provider = Provider.of<RecipeProvider>(context, listen: false);
+      try {
+        await provider.deleteRecipe(recipe.id ?? 0);
+        // Navigasi ke home screen dengan menghapus semua halaman di stack
+        if (mounted) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+      } catch (e) {
+        if (mounted) {
+          DialogUtils.showErrorDialog("Gagal menghapus resep");
+        }
+      }
+    }
   }
 
   Widget _buildIngredientItem(String ingredient) {
@@ -67,10 +103,17 @@ class DetailResepScreenState extends State<DetailResepScreen> {
               ).then((_) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (!mounted) return;
-                  context.read<RecipeProvider>().getRecipeDetail(recipe.id);
+                  context
+                      .read<RecipeProvider>()
+                      .getRecipeDetail(recipe.id ?? 0);
                 });
               });
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete),
+            color: Colors.white,
+            onPressed: () => _deleteRecipe(context),
           ),
         ],
       ),
@@ -87,17 +130,18 @@ class DetailResepScreenState extends State<DetailResepScreen> {
 
           if (recipeProvider.recipe != null) {
             _recipe = recipeProvider.recipe!;
+            recipe = _recipe;
           }
 
           return SingleChildScrollView(
             child: Column(
               children: [
                 Hero(
-                  tag: _recipe.id,
+                  tag: _recipe.id ?? "",
                   child: CachedNetworkImage(
                     height: 200,
                     width: double.infinity,
-                    imageUrl: _recipe.photoUrl,
+                    imageUrl: _recipe.photoUrl ?? "",
                     imageBuilder: (context, imageProvider) => Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
@@ -118,9 +162,19 @@ class DetailResepScreenState extends State<DetailResepScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Text(
-                  _recipe.title,
-                  style: Theme.of(context).textTheme.titleLarge,
+                Column(
+                  children: [
+                    Text(
+                      _recipe.title ?? "",
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    Badge(
+                      backgroundColor: Colors.green[600],
+                      label: Text(
+                        "Oleh : ${_recipe.user?.name}",
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 SizedBox(
@@ -143,7 +197,7 @@ class DetailResepScreenState extends State<DetailResepScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            _recipe.description,
+                            _recipe.description ?? "",
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ],
@@ -171,7 +225,7 @@ class DetailResepScreenState extends State<DetailResepScreen> {
                                 .copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 16),
-                          ...(_recipe.ingredients)
+                          ...(_recipe.ingredients ?? "")
                               .split('\n')
                               .map(_buildIngredientItem),
                         ],
@@ -199,7 +253,7 @@ class DetailResepScreenState extends State<DetailResepScreen> {
                                 .copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 16),
-                          ...(_recipe.cookingMethod).split('\n').map(
+                          ...(_recipe.cookingMethod ?? "").split('\n').map(
                                 (step) => Padding(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 4),
@@ -210,7 +264,7 @@ class DetailResepScreenState extends State<DetailResepScreen> {
                                       Padding(
                                         padding: const EdgeInsets.only(top: 4),
                                         child: Text(
-                                          '${(_recipe.cookingMethod).split('\n').indexOf(step) + 1}.',
+                                          '${(_recipe.cookingMethod ?? "").split('\n').indexOf(step) + 1}.',
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodyMedium!

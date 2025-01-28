@@ -38,9 +38,9 @@ class Recipe {
   final String photoUrl;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final int likesCount;
-  final int commentsCount;
-  final User user;
+  final int? likesCount;
+  final int? commentsCount;
+  final User? user;
 
   Recipe({
     required this.id,
@@ -52,9 +52,9 @@ class Recipe {
     required this.photoUrl,
     required this.createdAt,
     required this.updatedAt,
-    required this.likesCount,
-    required this.commentsCount,
-    required this.user,
+    this.likesCount,
+    this.commentsCount,
+    this.user,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) => Recipe(
@@ -67,9 +67,9 @@ class Recipe {
         photoUrl: json['photo_url'],
         createdAt: DateTime.parse(json['created_at']),
         updatedAt: DateTime.parse(json['updated_at']),
-        likesCount: json['likes_count'],
-        commentsCount: json['comments_count'],
-        user: User.fromJson(json['user']),
+        likesCount: json['likes_count'] ?? 0,
+        commentsCount: json['comments_count'] ?? 0,
+        user: json['user'] != null ? User.fromJson(json['user']) : null,
       );
 }
 

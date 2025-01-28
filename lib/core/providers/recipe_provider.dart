@@ -68,7 +68,7 @@ class RecipeProvider with ChangeNotifier {
     }
   }
 
-  Future<void> createRecipe({
+  Future<bool> createRecipe({
     required String title,
     required String description,
     required String cookingMethod,
@@ -86,7 +86,9 @@ class RecipeProvider with ChangeNotifier {
       );
       if (response.isSuccess) {
         DialogUtils.showInfoDialog('Resep berhasil ditambahkan');
+        return true;
       }
+      return false;
     } catch (e) {
       rethrow;
     } finally {
@@ -95,7 +97,7 @@ class RecipeProvider with ChangeNotifier {
   }
 
   // update recipe
-  Future<void> updateRecipe({
+  Future<bool> updateRecipe({
     required int id,
     required String title,
     required String description,
@@ -113,7 +115,24 @@ class RecipeProvider with ChangeNotifier {
       );
       if (response.isSuccess) {
         DialogUtils.showInfoDialog('Resep berhasil diupdate');
+        return true;
       }
+      return false;
+    } catch (e) {
+      rethrow;
+    } finally {
+      _stopLoading();
+    }
+  }
+
+  Future<void> deleteRecipe(int id) async {
+    _startLoading();
+    try {
+      await _recipeService.deleteRecipe(id);
+      // Hapus resep dari list
+      _recipes.removeWhere((recipe) => recipe.id == id);
+      notifyListeners();
+      DialogUtils.showInfoDialog('Resep berhasil dihapus');
     } catch (e) {
       rethrow;
     } finally {
